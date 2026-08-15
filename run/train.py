@@ -28,15 +28,18 @@ reconstructed = tokenizer.decode(token_ids)
 #Embed the tokens using token_ids.
 embedded_matrix = embedder.embedding(token_ids)
 
-attention = Attention(embedded_matrix, embed_dim, reduced_dim)
+#Self-attention.
+attention = Attention(embedded_matrix, embed_dim, reduced_dim, vocab_size)
 
 attention.create_matrices()
 attention.create_vectors()
 attention.dot_product()
 softmax_matrix = attention.softmax()
-value_multiplication = attention.value_multi()
-output = attention.output()
-final_matrix = attention.final_update()
+A_matrix = attention.aggregate_values()
+Y_matrix = attention.project_output()
+X_prime = attention.add_residual()
+O_matrix = attention.output()
+P_out = attention.probabilities()
 
 #Verifications
 

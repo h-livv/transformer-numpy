@@ -2,16 +2,18 @@ import numpy as np
 
 class Attention:
 
-    def __init__(self, embedded_matrix, embed_dim, reduced_dim):
+    def __init__(self, embedded_matrix, embed_dim, reduced_dim, vocab_size):
         self.X = embedded_matrix
         self.embed_dim = embed_dim
         self.reduced_dim = reduced_dim
+        self.vocab_size = vocab_size
 
     def create_matrices(self):
         self.Wq = np.random.randn(self.reduced_dim, self.embed_dim)
         self.Wk = np.random.randn(self.reduced_dim, self.embed_dim)
         self.Wv = np.random.randn(self.reduced_dim, self.embed_dim)
         self.Wo = np.random.randn(self.embed_dim, self.reduced_dim)
+        self.Wout = np.random.randn(self.vocab_size, self.embed_dim)
 
     def create_vectors(self):
         self.Q = self.Wq@self.X
@@ -29,28 +31,41 @@ class Attention:
         masked_dot = self.dot.copy()
         masked_dot[upper_indices] = -np.inf
         
-        exp_arr = np.exp(masked_dot - np.max(masked_dot, axis=1, keepdims=True))
+        self.exp_arr = np.exp(masked_dot - np.max(masked_dot, axis=1, keepdims=True))
 
-        self.softmax_arr = exp_arr / np.sum(exp_arr, axis=1, keepdims=True)
+        self.softmax_arr = self.exp_arr / np.sum(self.exp_arr, axis=1, keepdims=True)
 
         return self.softmax_arr
 
-    def value_multi(self):
+    def aggregate_values(self):
         
         self.Y = self.V@((self.softmax_arr).T)
 
         return self.Y
 
-    def output(self):
+    def project_output(self):
         self.output_matrix = self.Wo @ self.Y
 
         return self.output_matrix
 
-    def final_update(self):
+    def add_residual(self):
 
-        self.final = self.X + self.output_matrix
+        self.X_prime = self.X + self.output_matrix
 
-        return self.final
+        return self.X_prime
+
+    def output(self):
+
+        self.Z = self.Wout @ self.X_prime
+    
+    def probabilities(self):
+
+        self.exp_arr = np.exp(self.Z - np.max(self.Z, axis=1, keepdims=True))
+
+        self.softmax_out = self.exp_arr / np.sum(self.exp_arr, axis=1, keepdims=True)
+
+        return self.softmax_out
+
 
     def verification(self):
         print("X:", self.X.shape)
@@ -60,5 +75,7 @@ class Attention:
         print("Scores:", self.dot.shape)
         print("Attention:", self.softmax_arr.shape)
         print("Y:", self.Y.shape)
-        print("Output:", self.output_matrix.shape)
-        print("Final:", self.final.shape)
+        print("O:", self.output_matrix.shape)
+        print("X':", self.X_prime.shape)
+        print("Z :", self.Z.shape)
+        print("P :", self.softmax_out.shape)
