@@ -59,10 +59,13 @@ class Embedder:
         sequence_length = len(token_ids)
 
         #Extract only those embeddings that correspond to the prompt.
-        token_embeddings = self.weights[:, token_ids]
+        self.token_embeddings = self.weights[:, token_ids]
 
         #Get positional embedding.
-        pos_encodings = self.get_pos_encoding(sequence_length)
+        self.pos_encodings = self.get_pos_encoding(sequence_length)
 
         #Add the two.
-        return token_embeddings + pos_encodings
+        return self.token_embeddings + self.pos_encodings
+
+    def verification(self):
+        return (self.token_embeddings + self.pos_encodings).shape

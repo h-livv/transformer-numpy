@@ -1,6 +1,7 @@
 from src.tokenizer import Tokenizer
 from src.embedder import Embedder
 from src.attention import Attention
+from src.mlp import MLP
 
 #Raw training data.
 text = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!? "
@@ -17,7 +18,7 @@ reduced_dim = 4
 embedder = Embedder(embed_dim=embed_dim, vocab_size=vocab_size)
 
 #The prompt.
-prompt = "Hello my name is John"
+prompt = "Hello!"
 
 #Encode the prompt to get the token IDs.
 token_ids = tokenizer.encode(prompt)
@@ -38,8 +39,16 @@ softmax_matrix = attention.softmax()
 A_matrix = attention.aggregate_values()
 Y_matrix = attention.project_output()
 X_prime = attention.add_residual()
-O_matrix = attention.output()
-P_out = attention.probabilities()
+
+#MLP.
+mlp = MLP(X_prime, vocab_size, embed_dim)
+
+mlp.create_matrices()
+mlp.layer1()
+mlp.layer2()
+mlp.output()
+mlp.out_vocab()
+mlp.probabilities()
 
 #Verifications
 
@@ -51,8 +60,9 @@ print("")
 assert reconstructed == prompt
 
 print("--- EMBEDDER OUTPUT ---")
-print(f"Output Matrix Shape: {embedded_matrix.shape}")
-print(f"Interpretation: {embedded_matrix.shape[0]} rows of vector math across {embedded_matrix.shape[1]} token columns.")
+embedder.verification()
+print("Embedded Matrix Shape: ", embedder.verification())
+print(f"Interpretation: {embedder.verification()[0]} rows of vector math across {embedder.verification()[1]} token columns.")
 print("")
 
 print("--- POSITIONAL EMBEDDER OUTPUT ---")
@@ -61,4 +71,7 @@ print("")
 
 print("--- ATTENTION OUTPUT ---")
 attention.verification()
+print("")
 
+print("--- MLP OUTPUT ---")
+mlp.verification()

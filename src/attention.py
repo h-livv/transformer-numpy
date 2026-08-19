@@ -13,7 +13,7 @@ class Attention:
         self.Wk = np.random.randn(self.reduced_dim, self.embed_dim)
         self.Wv = np.random.randn(self.reduced_dim, self.embed_dim)
         self.Wo = np.random.randn(self.embed_dim, self.reduced_dim)
-        self.Wout = np.random.randn(self.vocab_size, self.embed_dim)
+
 
     def create_vectors(self):
         self.Q = self.Wq@self.X
@@ -54,18 +54,6 @@ class Attention:
 
         return self.X_prime
 
-    def output(self):
-
-        self.Z = self.Wout @ self.X_prime
-    
-    def probabilities(self):
-
-        self.exp_arr = np.exp(self.Z - np.max(self.Z, axis=1, keepdims=True))
-
-        self.softmax_out = self.exp_arr / np.sum(self.exp_arr, axis=1, keepdims=True)
-
-        return self.softmax_out
-
 
     def verification(self):
         print("X:", self.X.shape)
@@ -77,5 +65,3 @@ class Attention:
         print("Y:", self.Y.shape)
         print("O:", self.output_matrix.shape)
         print("X':", self.X_prime.shape)
-        print("Z :", self.Z.shape)
-        print("P :", self.softmax_out.shape)
