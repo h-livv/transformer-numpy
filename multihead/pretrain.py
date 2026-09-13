@@ -13,8 +13,7 @@ from src.backpropagation import Backpropagation
 
 np.random.seed(0)
 
-# Closed toy corpus — small enough that this 1-block model can finish a sentence.
-train_text = "The quick brown fox jumps over the lazy dog. " * 20
+train_text = "The quick brown fox jumps over the lazy dog. " *10
 
 tokenizer = Tokenizer(train_text)
 tokenizer.build_vocab()
@@ -151,5 +150,5 @@ print("--- GENERATION ---")
 eval_prompt = "The "
 print(f"Prompt: {eval_prompt!r}")
 print("")
-generated = generate(eval_prompt, 100)
+generated = generate(eval_prompt, 200)
 print(f"Generated: {generated!r}")

@@ -1,0 +1,14 @@
+--- NEXT TOKEN (untrained) ---
+Prompt:           'The '
+Predicted id:     11
+Predicted char:   'o'
+P(predicted):     0.10358802434637708
+
+--- TRAINING ---
+Training successful.
+Final loss: 0.0232
+
+--- GENERATION ---
+Prompt: 'The '
+
+Generated: 'The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jump'

@@ -1,23 +1,21 @@
 # Transformer from Scratch — NumPy
 
-A small decoder-only Transformer language model implemented from scratch in
-Python and NumPy, including the forward pass, training objective, and
-backpropagation.
+A decoder-only transformer written completely from scratch in NumPy.
+Tokenization, embedding, self-attention, forward-pass, backpropagation,
+cross-entropy, all written out.
 
-The project is built to understand language models through mathematical
-derivation rather than framework abstractions. Each component is derived from
-the underlying operation and implemented directly using NumPy, with matrix
-dimensions and information flow kept explicit.
+It is a character-level language model. Three versions:
 
-The model is character-level. `single_head/` is one block and one attention
-head. `multihead/` is one block with four heads. `multiblock/` stacks several
-multi-head blocks. All three train on a short repeated sentence and can
-complete a prefix of that sentence. That is a closed toy task, not general
-language modeling.
+- `singlehead/` — one block, one attention head
+- `multihead/` — one block, multi-head attention
+- `multiblock/` — several multi-head blocks, plus pre-norm LayerNorm
+
+The model trains on *The quick brown fox jumps over the lazy dog.* 
+<br>
+Prompt it with *The* and it finishes the sentence. That is memorization, not understanding.
+Quite literally a stochastic parrot.
 
 ## Architecture
-
-The high-level pipeline is:
 
 ```text
 Text
@@ -62,35 +60,32 @@ Backpropagation
 Parameter Updates
 ```
 
-Training uses random windows of length `context_length`. Generation scores
-only the last window so the positional encodings match those seen in training.
+`multihead/` runs the same attention function on each head’s own Q, K, and
+V, concatenates the outputs, then mixes them with one `Wo`.
+
+`multiblock/` stacks this block. Each block is:
+<br>
+LayerNorm → attention →
+residual → LayerNorm → MLP → residual. 
+<br>
+One more LayerNorm is implemented after the last
+block, then a single vocab head. Residuals live in the block.
+
+Training samples random windows of length `context_length`. Generation only
+scores the last window so positions match training. Optimizer is plain SGD.
 
 ## From Scratch
 
-The implementation uses only Python and NumPy for the model and training
-machinery.
+This was build using Python and NumPy only. No PyTorch, autograd, or `nn.Linear`.
 
-There are no deep-learning frameworks, automatic-differentiation systems, or
-prebuilt neural-network layers. Forward propagation, attention,
-backpropagation, gradient computation, and parameter updates are implemented
-manually from their underlying mathematics.
-
-The purpose is to make the correspondence between the mathematics and the
-implementation explicit.
+The point is to make the math line up with the code.
 
 ## Verification
 
-Individual components are checked numerically, including:
+The scripts check tokenizer round trips, positional encodings, causal
+masking, softmax, and dimensions.
 
-- tokenizer round trips
-- positional encoding equivalence
-- causal masking
-- softmax normalization
-- attention dimensions
-- forward-pass dimensions
-- gradient calculations
-
-Typical attention shapes:
+Typical attention shapes (one head):
 
 ```text
 X          (d_model, L)
@@ -104,16 +99,16 @@ Output     (d_model, L)
 Final      (d_model, L)
 ```
 
-Run a variant with:
+Reproduce the pipeline:
 
 ```text
-python single_head/train.py
-python multihead/train.py
+python singlehead/pretrain.py
+python multihead/pretrain.py
 python multiblock/pretrain.py
 ```
 
+Set `print_probs = True` prints the next-character probability distribution at each step.
+
 ## Philosophy
 
-This is a learning implementation, not an optimized Transformer library. The
-focus is on deriving the computation from first principles and translating
-that derivation directly into NumPy.
+This is a learning implementation, not an optimized Transformer library. The focus is on deriving the computation from first principles and translating that derivation directly into NumPy.
