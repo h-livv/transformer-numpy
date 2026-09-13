@@ -1,20 +1,26 @@
 # Transformer from Scratch — NumPy
 
-A decoder-only transformer written completely from scratch in NumPy.
-Tokenization, embedding, self-attention, forward-pass, backpropagation,
-cross-entropy, all written out.
+A decoder-only Transformer implemented **from scratch in NumPy**, including
+tokenization, embeddings, causal self-attention, feed-forward layers,
+backpropagation, cross-entropy, and parameter updates.
 
-It is a character-level language model. Three versions:
+The implementation is deliberately explicit: the mathematical operations map
+directly onto the code, with no PyTorch, autograd, or neural-network libraries.
 
-- `singlehead/` — one block, one attention head
-- `multihead/` — one block, multi-head attention
-- `multiblock/` — several multi-head blocks, plus pre-norm LayerNorm
+## Models
 
-The model trains on *The quick brown fox jumps over the lazy dog.* 
-<br>
-Prompt it with *The* and it finishes the sentence. That is memorization, not understanding.
-<br>
-Quite literally a stochastic parrot.
+Three progressively more expressive implementations are included:
+
+* `singlehead/` — one Transformer block, one attention head
+* `multihead/` — one block with multiple attention heads
+* `multiblock/` — stacked multi-head blocks with pre-norm LayerNorm
+
+The model is a character-level language model trained on:
+
+> *The quick brown fox jumps over the lazy dog.*
+
+At this scale, the model is primarily overfitting the training data
+rather than demonstrating meaningful language understanding.
 
 ## Architecture
 
@@ -31,13 +37,13 @@ Token IDs
 Token + Positional Embeddings
  │
  ▼
-Transformer Block
+Transformer Block(s)
  │
  ├── Causal Self-Attention
  │     ├── Q, K, V projections
- │     ├── Scaled Dot-Product Attention
- │     ├── Causal Masking
- │     └── Output Projection
+ │     ├── Scaled dot-product attention
+ │     ├── Causal masking
+ │     └── Output projection
  │
  ├── Residual
  │
@@ -52,7 +58,7 @@ Language Model Head
 Logits
  │
  ▼
-Loss
+Cross-Entropy Loss
  │
  ▼
 Backpropagation
@@ -61,32 +67,29 @@ Backpropagation
 Parameter Updates
 ```
 
-`multihead/` runs the same attention function on each head’s own Q, K, and
-V, concatenates the outputs, then mixes them with one `Wo`.
+`multihead/` computes attention independently for each head, concatenates the
+results, and applies the output projection.
 
-`multiblock/` stacks this block. Each block is:
-<br>
-LayerNorm → attention →
-residual → LayerNorm → MLP → residual. 
-<br>
-One more LayerNorm is implemented after the last
-block, then a single vocab head. Residuals live in the block.
+`multiblock/` stacks pre-norm Transformer blocks:
 
-Training samples random windows of length `context_length`, then generation only
-scores the last window so positions match training.
+```text
+LayerNorm → Attention → Residual
+LayerNorm → MLP       → Residual
+```
 
-## From Scratch
-
-This was built using Python and NumPy only. No PyTorch, autograd, or `nn.Linear`.
-
-The point is to make the math line up with the code.
+A final LayerNorm feeds the vocabulary projection.
 
 ## Verification
 
-The scripts check tokenizer round trips, positional encodings, causal
-masking, softmax, and dimensions.
+The implementation includes checks for:
 
-Typical attention shapes (one head):
+* tokenizer round trips
+* positional encodings
+* causal masking
+* softmax
+* tensor dimensions
+
+Typical single-head shapes:
 
 ```text
 X          (d_model, L)
@@ -97,19 +100,22 @@ Scores     (L, L)
 Attention  (L, L)
 Y          (d_v, L)
 Output     (d_model, L)
-Final      (d_model, L)
 ```
 
-Reproduce the pipeline:
+## Running
 
-```text
+```bash
 python singlehead/pretrain.py
 python multihead/pretrain.py
 python multiblock/pretrain.py
 ```
 
-Set `print_probs = True` prints the next-character probability distribution at each step.
+`print_probs = True` inspects the next-character probability
+distribution during generation.
 
-## Philosophy
+## Purpose
 
-This is a learning implementation, not an optimized Transformer library. The focus is on deriving the computation from first principles and translating that derivation directly into NumPy.
+This is a **learning implementation**, not an optimized Transformer library.
+
+The goal is to make the computational structure of the model explicit enough
+to inspect, modify, and experiment with directly.
