@@ -14,6 +14,9 @@ attention head. It trains on a short repeated sentence and can complete a
 prefix of that sentence. That is a closed toy task, not general language
 modeling.
 
+A multi-head clone lives in `multihead/`. The files at the repo root stay
+single-head.
+
 ## Architecture
 
 The high-level pipeline is:
