@@ -18,7 +18,7 @@ vocab_size = tokenizer.vocab_size
 embed_dim = 16
 reduced_dim = 4
 hidden_dim = 64
-print_probs = True
+print_probs = False
 
 #Initialize layers once so weights are reused across steps.
 embedder = Embedder(embed_dim=embed_dim, vocab_size=vocab_size)
@@ -74,7 +74,7 @@ def sgd_step(lr):
 
 
 #The prompt.
-prompt = "The quick brown fox jumps "
+prompt = "The "
 
 #Encode the prompt to get the token IDs.
 token_ids = tokenizer.encode(prompt)
@@ -123,7 +123,7 @@ print("")
 train_ids = tokenizer.encode(train_text)
 context_length = 48
 lr = 0.05
-steps = 3000
+steps = 8000
 
 print("--- TRAINING ---")
 for step in range(steps):
@@ -142,8 +142,8 @@ print(f"Final loss: {loss:.4f}")
 print("")
 
 print("--- GENERATION ---")
-eval_prompt = "The quick brown fox jumps "
+eval_prompt = "The "
 print(f"Prompt: {eval_prompt!r}")
 print("")
-generated = generate(eval_prompt, 18)
+generated = generate(eval_prompt, 100)
 print(f"Generated: {generated!r}")

@@ -9,13 +9,11 @@ derivation rather than framework abstractions. Each component is derived from
 the underlying operation and implemented directly using NumPy, with matrix
 dimensions and information flow kept explicit.
 
-The model is character-level, with a single Transformer block and a single
-attention head. It trains on a short repeated sentence and can complete a
-prefix of that sentence. That is a closed toy task, not general language
-modeling.
-
-A multi-head clone lives in `multihead/`. The files at the repo root stay
-single-head.
+The model is character-level. `single_head/` is one block and one attention
+head. `multihead/` is one block with four heads. `multiblock/` stacks several
+multi-head blocks. All three train on a short repeated sentence and can
+complete a prefix of that sentence. That is a closed toy task, not general
+language modeling.
 
 ## Architecture
 
@@ -106,14 +104,13 @@ Output     (d_model, L)
 Final      (d_model, L)
 ```
 
-Run the training script with:
+Run a variant with:
 
 ```text
-python train.py
+python single_head/train.py
+python multihead/train.py
+python multiblock/pretrain.py
 ```
-
-Set `print_probs = True` in `train.py` to print next-character probabilities
-during generation.
 
 ## Philosophy
 

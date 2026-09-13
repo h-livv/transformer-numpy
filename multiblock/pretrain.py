@@ -7,13 +7,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.tokenizer import Tokenizer
 from src.embedder import Embedder
-from src.attention import Attention
-from src.mlp import MLP
+from src.block import Block
+from src.head import LanguageModelHead
+from src.layernorm import LayerNorm
 from src.backpropagation import Backpropagation
 
 np.random.seed(0)
 
-# Closed toy corpus — small enough that this 1-block model can finish a sentence.
 train_text = "The quick brown fox jumps over the lazy dog. " * 20
 
 tokenizer = Tokenizer(train_text)
@@ -23,21 +23,27 @@ vocab_size = tokenizer.vocab_size
 embed_dim = 16
 reduced_dim = 4
 n_heads = 4
+n_blocks = 5
 hidden_dim = 64
 print_probs = False
 
-#Initialize layers once so weights are reused across steps.
 embedder = Embedder(embed_dim=embed_dim, vocab_size=vocab_size)
-attention = Attention(embed_dim, reduced_dim, n_heads)
-mlp = MLP(vocab_size, embed_dim, hidden_dim)
+blocks = [
+    Block(embed_dim, reduced_dim, n_heads, hidden_dim)
+    for _ in range(n_blocks)
+]
+lm_head = LanguageModelHead(vocab_size, embed_dim)
+ln_f = LayerNorm(embed_dim)
 backprop = Backpropagation()
 
 
 def forward(token_ids):
-    embedded_matrix = embedder.embedding(token_ids)
-    X_prime = attention.forward(embedded_matrix)
-    probabilities = mlp.forward(X_prime)
-    return mlp.Z, probabilities
+    X = embedder.embedding(token_ids)
+    for block in blocks:
+        X = block.forward(X)
+    X = ln_f.forward(X)
+    probabilities = lm_head.forward(X)
+    return lm_head.Z, probabilities
 
 
 def print_next_token_distribution(prefix, probs, selected_id):
@@ -75,25 +81,20 @@ def generate(prompt, max_new_tokens):
 
 def sgd_step(lr):
     embedder.step(lr)
-    attention.step(lr)
-    mlp.step(lr)
+    for block in blocks:
+        block.step(lr)
+    ln_f.step(lr)
+    lm_head.step(lr)
 
 
-#The prompt.
-prompt = "The quick brown fox jumps "
+prompt = "The "
 
-#Encode the prompt to get the token IDs.
 token_ids = tokenizer.encode(prompt)
-
-#Decode for verification
 reconstructed = tokenizer.decode(token_ids)
 
-#One forward pass for shape checks and next-token wiring.
 logits, probabilities = forward(token_ids)
-predicted_id = mlp.next_token_id()
+predicted_id = lm_head.next_token_id()
 predicted_char = tokenizer.decode([predicted_id])
-
-#Verifications
 
 print("--- TOKENIZATION OUTPUT ---")
 print("Original:     ", repr(prompt))
@@ -112,24 +113,27 @@ print("--- POSITIONAL EMBEDDER OUTPUT ---")
 embedder.verify_pos(sequence_length=len(token_ids))
 print("")
 
-print("--- ATTENTION OUTPUT ---")
-attention.verification()
+for i, block in enumerate(blocks):
+    block.verification(i)
+
+print("--- FINAL LAYERNORM ---")
+ln_f.verification()
 print("")
 
-print("--- MLP OUTPUT ---")
-mlp.verification()
+print("--- LANGUAGE MODEL HEAD ---")
+lm_head.verification()
 
 print("--- NEXT TOKEN (untrained) ---")
 print("Prompt:          ", repr(prompt))
 print("Predicted id:    ", predicted_id)
 print("Predicted char:  ", repr(predicted_char))
-print("P(predicted):    ", float(mlp.next_token_probs()[predicted_id]))
+print("P(predicted):    ", float(lm_head.next_token_probs()[predicted_id]))
 print("")
 
 train_ids = tokenizer.encode(train_text)
 context_length = 48
 lr = 0.05
-steps = 3000
+steps = 8000
 
 print("--- TRAINING ---")
 for step in range(steps):
@@ -138,8 +142,10 @@ for step in range(steps):
     _, probs = forward(batch)
     loss = backprop.loss_function(batch, probs)
     dZ = backprop.dl_dz()
-    dX_prime = mlp.backward(dZ)
-    dX = attention.backward(dX_prime)
+    dX = lm_head.backward(dZ)
+    dX = ln_f.backward(dX)
+    for block in reversed(blocks):
+        dX = block.backward(dX)
     embedder.backward(dX)
     sgd_step(lr)
 
@@ -148,8 +154,8 @@ print(f"Final loss: {loss:.4f}")
 print("")
 
 print("--- GENERATION ---")
-eval_prompt = "The quick brown fox jumps "
+eval_prompt = "The "
 print(f"Prompt: {eval_prompt!r}")
 print("")
-generated = generate(eval_prompt, 18)
+generated = generate(eval_prompt, 100)
 print(f"Generated: {generated!r}")
