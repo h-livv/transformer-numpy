@@ -13,6 +13,7 @@ It is a character-level language model. Three versions:
 The model trains on *The quick brown fox jumps over the lazy dog.* 
 <br>
 Prompt it with *The* and it finishes the sentence. That is memorization, not understanding.
+<br>
 Quite literally a stochastic parrot.
 
 ## Architecture
@@ -71,8 +72,8 @@ residual → LayerNorm → MLP → residual.
 One more LayerNorm is implemented after the last
 block, then a single vocab head. Residuals live in the block.
 
-Training samples random windows of length `context_length`. Generation only
-scores the last window so positions match training. Optimizer is plain SGD.
+Training samples random windows of length `context_length`, then generation only
+scores the last window so positions match training.
 
 ## From Scratch
 
