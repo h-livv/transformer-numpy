@@ -18,7 +18,7 @@ vocab_size = tokenizer.vocab_size
 embed_dim = 16
 reduced_dim = 4
 hidden_dim = 64
-print_probs = False
+print_probs = True
 
 #Initialize layers once so weights are reused across steps.
 embedder = Embedder(embed_dim=embed_dim, vocab_size=vocab_size)

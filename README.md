@@ -1,6 +1,6 @@
 # Transformer from Scratch — NumPy
 
-A full Transformer language-model architecture implemented from scratch in
+A small decoder-only Transformer language model implemented from scratch in
 Python and NumPy, including the forward pass, training objective, and
 backpropagation.
 
@@ -9,8 +9,10 @@ derivation rather than framework abstractions. Each component is derived from
 the underlying operation and implemented directly using NumPy, with matrix
 dimensions and information flow kept explicit.
 
-> **Status:** Architecture implemented; end-to-end training and validation are
-> still in progress.
+The model is character-level, with a single Transformer block and a single
+attention head. It trains on a short repeated sentence and can complete a
+prefix of that sentence. That is a closed toy task, not general language
+modeling.
 
 ## Architecture
 
@@ -31,17 +33,17 @@ Token + Positional Embeddings
  ▼
 Transformer Block
  │
- ├── Multi-Head Self-Attention
+ ├── Causal Self-Attention
  │     ├── Q, K, V projections
  │     ├── Scaled Dot-Product Attention
  │     ├── Causal Masking
  │     └── Output Projection
  │
- ├── Residual + Normalization
+ ├── Residual
  │
  ├── Feed-Forward Network
  │
- └── Residual + Normalization
+ └── Residual
  │
  ▼
 Language Model Head
@@ -59,6 +61,9 @@ Backpropagation
 Parameter Updates
 ```
 
+Training uses random windows of length `context_length`. Generation scores
+only the last window so the positional encodings match those seen in training.
+
 ## From Scratch
 
 The implementation uses only Python and NumPy for the model and training
@@ -75,7 +80,7 @@ implementation explicit.
 ## Verification
 
 Individual components are checked numerically, including:
-<br>
+
 - tokenizer round trips
 - positional encoding equivalence
 - causal masking
@@ -98,6 +103,17 @@ Output     (d_model, L)
 Final      (d_model, L)
 ```
 
+Run the training script with:
+
+```text
+python train.py
+```
+
+Set `print_probs = True` in `train.py` to print next-character probabilities
+during generation.
+
 ## Philosophy
 
-This is a learning implementation, not an optimized Transformer library. The focus is on deriving the computation from first principles and translating that derivation directly into NumPy.
+This is a learning implementation, not an optimized Transformer library. The
+focus is on deriving the computation from first principles and translating
+that derivation directly into NumPy.
