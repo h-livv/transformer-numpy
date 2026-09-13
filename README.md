@@ -1,12 +1,20 @@
 # Transformer from Scratch — NumPy
 
-A from-scratch Transformer implementation in Python and NumPy, built to understand the architecture through mathematical derivation rather than abstraction.
+A full Transformer language-model architecture implemented from scratch in
+Python and NumPy, including the forward pass, training objective, and
+backpropagation.
 
-Each component is derived from the operation it needs to perform, with matrix dimensions and information flow kept explicit.
+The project is built to understand language models through mathematical
+derivation rather than framework abstractions. Each component is derived from
+the underlying operation and implemented directly using NumPy, with matrix
+dimensions and information flow kept explicit.
+
+> **Status:** Architecture implemented; end-to-end training and validation are
+> still in progress.
 
 ## Architecture
 
-The pipeline is:
+The high-level pipeline is:
 
 ```text
 Text
@@ -18,36 +26,63 @@ Tokenizer
 Token IDs
  │
  ▼
-Token Embeddings
+Token + Positional Embeddings
  │
  ▼
-Positional Encoding
+Transformer Block
+ │
+ ├── Multi-Head Self-Attention
+ │     ├── Q, K, V projections
+ │     ├── Scaled Dot-Product Attention
+ │     ├── Causal Masking
+ │     └── Output Projection
+ │
+ ├── Residual + Normalization
+ │
+ ├── Feed-Forward Network
+ │
+ └── Residual + Normalization
  │
  ▼
-Q, K, V projections
+Language Model Head
  │
  ▼
-Scaled Dot-Product Attention
+Logits
  │
  ▼
-Causal Masking
+Loss
  │
  ▼
-Softmax Attention Weights
+Backpropagation
  │
  ▼
-Weighted Value Aggregation
- │
- ▼
-Output Projection
- │
- ▼
-Residual Connection
+Parameter Updates
 ```
+
+## From Scratch
+
+The implementation uses only Python and NumPy for the model and training
+machinery.
+
+There are no deep-learning frameworks, automatic-differentiation systems, or
+prebuilt neural-network layers. Forward propagation, attention,
+backpropagation, gradient computation, and parameter updates are implemented
+manually from their underlying mathematics.
+
+The purpose is to make the correspondence between the mathematics and the
+implementation explicit.
 
 ## Verification
 
-Each stage is checked numerically, including tokenizer round trips, positional encoding equivalence, causal masking, softmax normalization, and attention dimensions.
+Individual components are checked numerically, including:
+<br>
+- tokenizer round trips
+- positional encoding equivalence
+- causal masking
+- softmax normalization
+- attention dimensions
+- forward-pass dimensions
+- gradient calculations
 
 Typical attention shapes:
 

@@ -56,16 +56,24 @@ class Embedder:
     #Perform token embedding, and add positional embedding.
     #Input is the encoded char IDs.
     def embedding(self, token_ids):
-        sequence_length = len(token_ids)
+        self.token_ids = np.asarray(token_ids)
+        sequence_length = len(self.token_ids)
 
         #Extract only those embeddings that correspond to the prompt.
-        self.token_embeddings = self.weights[:, token_ids]
+        self.token_embeddings = self.weights[:, self.token_ids]
 
         #Get positional embedding.
         self.pos_encodings = self.get_pos_encoding(sequence_length)
 
         #Add the two.
         return self.token_embeddings + self.pos_encodings
+
+    def backward(self, dX):
+        self.dW = np.zeros_like(self.weights)
+        np.add.at(self.dW.T, self.token_ids, dX.T)
+
+    def step(self, lr):
+        self.weights -= lr * self.dW
 
     def verification(self):
         return (self.token_embeddings + self.pos_encodings).shape
