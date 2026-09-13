@@ -77,7 +77,7 @@ scores the last window so positions match training.
 
 ## From Scratch
 
-This was build using Python and NumPy only. No PyTorch, autograd, or `nn.Linear`.
+This was built using Python and NumPy only. No PyTorch, autograd, or `nn.Linear`.
 
 The point is to make the math line up with the code.
 
