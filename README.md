@@ -1,11 +1,14 @@
 # Transformer from Scratch — NumPy
 
-A decoder-only Transformer implemented **from scratch in NumPy**, including
-tokenization, embeddings, causal self-attention, feed-forward layers,
-backpropagation, cross-entropy, and parameter updates.
+A decoder-only Transformer built from scratch in NumPy, with tokenization,
+causal attention, backpropagation, and parameter updates written out explicitly.
 
-The implementation is deliberately explicit: the mathematical operations map
-directly onto the code, with no PyTorch, autograd, or neural-network libraries.
+I’m working toward inference and interpretability, using a small character
+model to keep the computations easy to follow.
+
+> **Status:** In progress. The current model trains on a tiny text sample; it’s
+> useful for studying the implementation, not for demonstrating language
+> ability.
 
 ## Models
 
@@ -115,7 +118,6 @@ distribution during generation.
 
 ## Purpose
 
-This is a **learning implementation**, not an optimized Transformer library.
-
-The goal is to make the computational structure of the model explicit enough
-to inspect, modify, and experiment with directly.
+This is a learning implementation, not an optimized library. I’m using it to
+make the model’s computations easier to inspect, and to build toward inference
+and interpretability.
